@@ -7,7 +7,7 @@ class TodoWindow(Gtk.Window):
 
     def __init__(self, task_dict):
         Gtk.Window.__init__(self, title='Todo.txt')
-        self.set_border_width(7)
+        self.set_border_width(10)
         self.set_type_hint(Gdk.WindowTypeHint.DIALOG)
         self.grid = Gtk.Grid(column_spacing=5, row_spacing=4)
         self.add(self.grid)
@@ -22,6 +22,11 @@ class TodoWindow(Gtk.Window):
 
         self.populate_listbox(task_dict)
 
+        separator = Gtk.Separator()
+        exit_button = Gtk.Button.new_from_stock(Gtk.STOCK_CANCEL)
+        self.grid.attach_next_to(separator, None, Gtk.PositionType.BOTTOM, 3, 1)
+        self.grid.attach_next_to(exit_button, separator, Gtk.PositionType.BOTTOM, 3, 1)
+
     def populate_listbox(self, task_dict):
         categories = list(task_dict)
         categories.sort()
@@ -33,7 +38,7 @@ class TodoWindow(Gtk.Window):
     def populate_category(self, task_list, category, pos):
         for index, task in enumerate(task_list):
             label = self.create_list_entry(task, category)
-            self.grid.attach(label, 0, index + pos, 3, 1)
+            self.grid.attach(label, 0, index + pos, 1, 1)
 
             done_button = Gtk.Button.new_from_icon_name('emblem-ok-symbolic',
                                                         Gtk.IconSize.BUTTON)
