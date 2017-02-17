@@ -1,3 +1,17 @@
-.A{
+GtkWindow {
     color: pink;
+}
+
+.A{
+    color: #dd464c;
+    font-weight: bold;
+}
+
+.B{
+    color: #fd8b19;
+    font-weight: bold;
+}
+
+.C{
+    color: #149b93;
 }
