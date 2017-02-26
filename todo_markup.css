@@ -15,3 +15,13 @@ GtkWindow {
 .C{
     color: #149b93;
 }
+
+.done{
+    color: green;
+    font-weight: normal;
+}
+
+.removed{
+    color: grey;
+    text-decoration: line-through;
+}
