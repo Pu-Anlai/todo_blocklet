@@ -9,8 +9,10 @@ class TodoWindow(Gtk.Window):
         Gtk.Window.__init__(self, title='Todo.txt')
         self.set_border_width(10)
         self.set_type_hint(Gdk.WindowTypeHint.DIALOG)
+        self.vbox = Gtk.VBox(spacing=5)
+        self.add(self.vbox)
         self.grid = Gtk.Grid(column_spacing=5, row_spacing=4)
-        self.add(self.grid)
+        self.vbox.pack_start(self.grid, True, True, 0)
 
         screen = self.get_screen()
         css_provider = Gtk.CssProvider()
@@ -23,12 +25,19 @@ class TodoWindow(Gtk.Window):
         self.populate_listbox(task_dict)
 
         separator = Gtk.Separator()
-        exit_button = Gtk.Button.new_from_stock(Gtk.STOCK_OK)
-        self.grid.attach_next_to(separator, None, Gtk.PositionType.BOTTOM, 3, 1)
-        self.grid.attach_next_to(exit_button, separator, Gtk.PositionType.BOTTOM, 3, 1)
+        self.vbox.pack_start(separator, True, True, 0)
+
+        button_box = Gtk.ButtonBox(layout_style=Gtk.ButtonBoxStyle.SPREAD, spacing=2)
+        self.vbox.pack_start(button_box, True, True, 0)
+
+        ok_button = Gtk.Button.new_from_stock(Gtk.STOCK_OK)
+        cancel_button = Gtk.Button.new_from_stock(Gtk.STOCK_CANCEL)
+        button_box.add(cancel_button)
+        button_box.add(ok_button)
 
         self.connect('delete-event', Gtk.main_quit)
-        exit_button.connect('clicked', self.clicked_ok)
+        ok_button.connect('clicked', self.clicked_ok)
+        cancel_button.connect('clicked', Gtk.main_quit)
 
     def populate_listbox(self, task_dict):
         categories = list(task_dict)
@@ -40,20 +49,28 @@ class TodoWindow(Gtk.Window):
 
     def populate_category(self, task_list, category, pos):
         for index, task in enumerate(task_list):
+            row = index + pos
+
+            # the label that indicates if the task is marked as done or removed
+            state_label = Gtk.Label(label='•', width_chars=2)
+            self.grid.attach(state_label, 0, row, 1, 1)
+
             label = self.create_list_entry(task, category)
-            self.grid.attach(label, 0, index + pos, 1, 1)
+            label.default_category = category
+            label.state = 'default'
+            self.grid.attach_next_to(label, state_label,
+                                     Gtk.PositionType.RIGHT,
+                                     1, 1)
 
             done_button = Gtk.Button.new_from_icon_name('emblem-ok-symbolic',
                                                         Gtk.IconSize.BUTTON)
             done_button.pressed = False
-            done_button.connect('clicked', self.clicked_done,
-                                label, category, task)
+            done_button.connect('clicked', self.clicked_done, row)
 
             rm_button = Gtk.Button.new_from_icon_name('edit-delete-symbolic',
                                                       Gtk.IconSize.BUTTON)
             rm_button.pressed = False
-            rm_button.connect('clicked', self.clicked_rm,
-                               label, category)
+            rm_button.connect('clicked', self.clicked_rm, row)
 
             self.grid.attach_next_to(done_button, label,
                                      Gtk.PositionType.RIGHT,
@@ -68,27 +85,19 @@ class TodoWindow(Gtk.Window):
         label.set_alignment(0, .5)
         return label
 
-    def clicked_done(self, button, label, category, task):
-        if button.pressed == False:
-            self.remove_css_classes(label)
-            label.get_style_context().add_class('done')
-            label.props.label = "✓ {}".format(task)
-            button.pressed = True
+    def clicked_done(self, button, row):
+        label = self.get_label_in_grid(row)
+        if not label.state == 'done':
+            self.mark_task_done(row)
         else:
-            self.remove_css_classes(label)
-            label.get_style_context().add_class(category)
-            label.props.label = task
-            button.pressed = False
+            self.mark_task_default(row)
 
-    def clicked_rm(self, button, label, category):
-        if button.pressed == False:
-            self.remove_css_classes(label)
-            label.get_style_context().add_class('removed')
-            button.pressed = True
+    def clicked_rm(self, button, row):
+        label = self.get_label_in_grid(row)
+        if not label.state == 'removed':
+            self.mark_task_removed(row)
         else:
-            self.remove_css_classes(label)
-            label.get_style_context().add_class(category)
-            button.pressed = False
+            self.mark_task_default(row)
 
     def clicked_ok(self, button):
         Gtk.main_quit()
@@ -98,6 +107,50 @@ class TodoWindow(Gtk.Window):
         classes = context.list_classes()
         for css_class in classes:
             context.remove_class(css_class)
+
+    def mark_task_done(self, row):
+        label = self.get_label_in_grid(row)
+        self.remove_css_classes(label)
+        label.get_style_context().add_class('done')
+        label.state = 'done'
+
+        state_label = self.get_state_label_in_grid(row)
+        state_label.set_label('✓')
+
+    def mark_task_removed(self, row):
+        label = self.get_label_in_grid(row)
+        self.remove_css_classes(label)
+        label.get_style_context().add_class('removed')
+        label.state = 'removed'
+
+        state_label = self.get_state_label_in_grid(row)
+        state_label.set_label('✗')
+
+    def mark_task_default(self, row):
+        label = self.get_label_in_grid(row)
+        self.remove_css_classes(label)
+        category = label.default_category
+        label.get_style_context().add_class(category)
+        label.state = 'default'
+
+        state_label = self.get_state_label_in_grid(row)
+        state_label.set_label('•')
+
+    def get_state_label_in_grid(self, row):
+        state_label = self.grid.get_child_at(0, row)
+        return state_label
+
+    def get_label_in_grid(self, row):
+        label = self.grid.get_child_at(1, row)
+        return label
+
+    def get_done_button_in_grid(self, row):
+        done_button = self.grid.get_child_at(2, row)
+        return done_button
+
+    def get_rm_button_in_grid(self, row):
+        rm_button = self.grid.get_child_at(3, row)
+        return rm_button
 
 
 def gui_from_tasks(task_dict):
