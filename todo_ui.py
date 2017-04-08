@@ -107,28 +107,47 @@ class TodoWindow(Gtk.Window):
         label = self.get_label_in_grid(row)
         if label.state == 'done':
             self.mark_task_default(row)
-        elif label.state == 'removed':
-            self.mark_task_done(row)
+            self.remove_from_taskdict(self.done_tasks,
+                                      label.get_property('label'),
+                                      label.default_category)
         else:
             self.mark_task_done(row)
             self.add_to_taskdict(self.done_tasks,
+                                 self.rm_tasks,
                                  label.get_property('label'),
                                  label.default_category)
 
     def clicked_rm(self, button, row):
         label = self.get_label_in_grid(row)
-        if not label.state == 'removed':
-            self.mark_task_removed(row)
-        else:
+        if label.state == 'removed':
             self.mark_task_default(row)
+            self.remove_from_taskdict(self.rm_tasks,
+                                      label.get_property('label'),
+                                      label.default_category)
+        else:
+            self.mark_task_removed(row)
+            self.add_to_taskdict(self.rm_tasks,
+                                 self.done_tasks,
+                                 label.get_property('label'),
+                                 label.default_category)
 
-    def add_to_taskdict(self, taskdict, task, cat):
-        """Add a task to the rm_ or done_dictionary."""
+    def add_to_taskdict(self, add_dict, remove_dict, task, cat):
+        """Add a task to the add_dict, but try to remove it from remove_dict
+        first."""
+        self.remove_from_taskdict(remove_dict, task, cat)
         try:
-            taskdict[cat].append(task)
+            add_dict[cat].append(task)
         except KeyError:
-            taskdict[cat] = []
-            taskdict[cat].append(task)
+            add_dict[cat] = []
+            add_dict[cat].append(task)
+
+    def remove_from_taskdict(self, remove_dict, task, cat):
+        try:
+            remove_dict[cat].remove(task)
+            if len(remove_dict[cat]) == 0:
+                remove_dict.pop(cat)
+        except (KeyError, ValueError):
+            pass
 
     def remove_css_classes(self, widget):
         context = widget.get_style_context()
@@ -194,4 +213,6 @@ def gui_from_tasks(task_dict):
     win.show_all()
     Gtk.main()
     if exit_state == 0:
-        return win.done_tasks
+        return win.done_tasks, win.rm_tasks
+    else:
+        return None
