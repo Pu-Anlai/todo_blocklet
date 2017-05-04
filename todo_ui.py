@@ -2,13 +2,13 @@ import gi
 gi.require_version('Gtk', '3.0')
 from gi.repository import Gtk, Gdk
 
-exit_state = None
-
 
 class TodoWindow(Gtk.Window):
 
     def __init__(self, task_dict):
         Gtk.Window.__init__(self, title='Todo.txt')
+
+        self.exit_state = 8
 
         self.done_tasks = {}
         self.rm_tasks = {}
@@ -49,9 +49,8 @@ class TodoWindow(Gtk.Window):
         button_box.add(ok_button)
 
         # and functions for their click signals
-        self.connect('delete-event', Gtk.main_quit)
         ok_button.connect('clicked', self.clicked_ok)
-        cancel_button.connect('clicked', Gtk.main_quit)
+        cancel_button.connect('clicked', self.clicked_cancel)
 
     def populate_grid(self, task_dict):
         """Populates the grid category by category."""
@@ -202,9 +201,12 @@ class TodoWindow(Gtk.Window):
         return rm_button
 
     def clicked_ok(self, button):
+        self.exit_state = 0
         Gtk.main_quit()
-        global exit_state
-        exit_state = 0
+
+    def clicked_cancel(self, button):
+        self.exit_state = 1
+        Gtk.main_quit()
 
 
 def gui_from_tasks(task_dict):
@@ -212,7 +214,7 @@ def gui_from_tasks(task_dict):
     win.connect('delete-event', Gtk.main_quit)
     win.show_all()
     Gtk.main()
-    if exit_state == 0:
-        return win.done_tasks, win.rm_tasks
-    else:
-        return None
+    return_dict = {'exit_state': win.exit_state,
+                   'done_tasks': win.done_tasks,
+                   'rm_tasks': win.rm_tasks}
+    return return_dict
