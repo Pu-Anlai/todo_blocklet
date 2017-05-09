@@ -1,11 +1,10 @@
 import os
 import re
 from time import strftime
+from todo_config import TODO_PATH
 
-HOME = os.environ['HOME']
-TODO_PATH = os.path.join(HOME, '.local/share/todo.txt')
-TODO_TXT = os.path.join(TODO_PATH, 'todo.txt.tmp')
-DONE_TXT = os.path.join(TODO_PATH, 'done.txt.tmp')
+TODO_TXT = os.path.join(TODO_PATH, 'todo.txt')
+DONE_TXT = os.path.join(TODO_PATH, 'done.txt')
 
 
 def extract_cats(task_list):
