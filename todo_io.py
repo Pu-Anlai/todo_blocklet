@@ -37,11 +37,7 @@ def run_gui(task_dict):
                                   return_dict['rm_tasks'],
                                   task_dict)
 
-    print_blocklet(task_dict)
 
-
-try:
-    if os.environ['BLOCK_BUTTON'] == '1':
-        run_gui(task_dict)
-except KeyError:
-    print_blocklet(task_dict)
+if os.environ['BLOCK_BUTTON'] == '1':
+    run_gui(task_dict)
+print_blocklet(task_dict)
