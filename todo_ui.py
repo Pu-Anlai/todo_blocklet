@@ -1,6 +1,10 @@
+import os
 import gi
 gi.require_version('Gtk', '3.0')
 from gi.repository import Gtk, Gdk
+
+markup_file = os.path.join(os.path.dirname(os.path.realpath(__file__)),
+                           'todo_markup.css')
 
 
 class TodoWindow(Gtk.Window):
@@ -18,7 +22,7 @@ class TodoWindow(Gtk.Window):
 
         screen = self.get_screen()
         css_provider = Gtk.CssProvider()
-        css_provider.load_from_path('todo_markup.css')
+        css_provider.load_from_path(markup_file)
         Gtk.StyleContext.\
             add_provider_for_screen(screen,
                                     css_provider,
