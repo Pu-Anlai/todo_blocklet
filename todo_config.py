@@ -14,3 +14,8 @@ TODO_PATH = os.path.join(HOME, '.local/share/todo.txt')
 # (hopefully your language doesn't have dual marking on nouns).
 TAIL_SGL_STR = 'Task'
 TAIL_PL_STR = 'Tasks'
+
+# The command that starts your editor. For editing the todo.txt file when
+# middle-clicking the blocklet. {} will be replaced with the full path to your
+# todo.txt file.
+TXT_EDITOR = 'i3-sensible-terminal -e \'nvim {}\''

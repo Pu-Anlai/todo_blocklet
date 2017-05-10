@@ -1,8 +1,9 @@
 import os
+import subprocess
 import colors
 import todo_rw
 import todo_ui
-from todo_config import TAIL_SGL_STR, TAIL_PL_STR
+from todo_config import TAIL_SGL_STR, TAIL_PL_STR, TXT_EDITOR
 
 task_dict = todo_rw.task_dict
 
@@ -14,12 +15,14 @@ def tail(length):
     else:
         return TAIL_PL_STR
 
+
 def critical_str(urgent_int, color):
     '''Return a string for critical tasks only if there are any.'''
     if urgent_int > 0:
         return '(<span color="{0}">{1!s}</span>)'.format(color, urgent_int)
     else:
         return ''
+
 
 def print_blocklet(task_dict):
     '''Print the string that is shown as output in i3blocks.'''
@@ -43,6 +46,14 @@ def run_gui(task_dict):
                                   task_dict)
 
 
+def open_in_editor(txt_file):
+    subprocess.run(TXT_EDITOR.format(txt_file), shell=True)
+    # subprocess.run([TXT_EDITOR, txt_file])
+
+
 if os.environ['BLOCK_BUTTON'] == '1':
     run_gui(task_dict)
+elif os.environ['BLOCK_BUTTON'] == '2':
+    open_in_editor(todo_rw.TODO_TXT)
+
 print_blocklet(task_dict)
