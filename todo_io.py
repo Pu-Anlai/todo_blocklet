@@ -19,9 +19,9 @@ def tail(length):
 def critical_str(urgent_int, color):
     '''Return a string for critical tasks only if there are any.'''
     if urgent_int > 0:
-        return '(<span color="{0}">{1!s}</span>)'.format(color, urgent_int)
+        return ' (<span color="{0}">{1!s}</span>) '.format(color, urgent_int)
     else:
-        return ''
+        return ' '
 
 
 def print_blocklet(task_dict):
@@ -38,7 +38,7 @@ def print_blocklet(task_dict):
 
     block_out = ('{0!s}'
                  '<span font_size ="small">'
-                 ' {1} '
+                 '{1}'
                  '{2}</span>').format(task_int,
                                       critical_str(urgent_int, colors.color04),
                                       tail(task_int))

@@ -23,10 +23,8 @@ class TodoWindow(Gtk.Window):
         screen = self.get_screen()
         css_provider = Gtk.CssProvider()
         css_provider.load_from_path(markup_file)
-        Gtk.StyleContext.\
-            add_provider_for_screen(screen,
-                                    css_provider,
-                                    Gtk.STYLE_PROVIDER_PRIORITY_USER)
+        Gtk.StyleContext.add_provider_for_screen(
+                screen, css_provider, Gtk.STYLE_PROVIDER_PRIORITY_USER)
 
         # top level box that holds everything else
         self.vbox = Gtk.VBox(spacing=5)
