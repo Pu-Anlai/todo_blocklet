@@ -26,8 +26,16 @@ def critical_str(urgent_int, color):
 
 def print_blocklet(task_dict):
     '''Print the string that is shown as output in i3blocks.'''
-    task_int = len(todo_rw.extract_bare_tasks(task_dict))
-    urgent_int = len(task_dict['A'])
+    try:
+        task_int = len(todo_rw.extract_bare_tasks(task_dict))
+    except KeyError:
+        task_int = 0
+
+    try:
+        urgent_int = len(task_dict['A'])
+    except KeyError:
+        urgent_int = 0
+
     block_out = ('{0!s}'
                  '<span font_size ="small">'
                  ' {1} '
