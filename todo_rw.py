@@ -39,10 +39,10 @@ def extract_bare_tasks(task_dict):
     return bare_list
 
 
-def create_task_dict(in_file):
+def create_task_dict():
     """Parse in_file and return a dictionary with categories as keys and a list
     of all tasks under the category as values."""
-    with open(in_file, 'r') as todo_file:
+    with open(TODO_TXT, 'r') as todo_file:
         task_list = todo_file.read()
         task_dict = {}
         for cat in extract_cats(task_list):
@@ -63,7 +63,10 @@ def create_todo_items(task_dict):
     line_list = []
     for cat, task_list in task_dict.items():
         for task in task_list:
-            line_list.append('({}) {}\n'.format(cat, task))
+            if cat == 'none':
+                line_list.append('{}\n'.format(task))
+            else:
+                line_list.append('({}) {}\n'.format(cat, task))
 
     return line_list
 
@@ -94,6 +97,3 @@ def apply_gui_changes(done_tasks, rm_tasks, task_dict):
         remove_tasks(rm_tasks, task_dict)
         update_todo_file(TODO_TXT, task_dict)
         update_done_file(DONE_TXT, done_tasks)
-
-
-task_dict = create_task_dict(TODO_TXT)

@@ -5,8 +5,6 @@ import todo_rw
 import todo_ui
 from todo_config import TAIL_SGL_STR, TAIL_PL_STR, TXT_EDITOR
 
-task_dict = todo_rw.task_dict
-
 
 def tail(length):
     """Depending on length, return singular or plural trailing word."""
@@ -53,15 +51,20 @@ def run_gui(task_dict):
                                   return_dict['rm_tasks'],
                                   task_dict)
 
+    task_dict = todo_rw.create_task_dict()
+    print_blocklet(task_dict)
+
 
 def open_in_editor(txt_file):
     subprocess.run(TXT_EDITOR.format(txt_file), shell=True)
-    # subprocess.run([TXT_EDITOR, txt_file])
+    task_dict = todo_rw.create_task_dict()
+    print_blocklet(task_dict)
 
 
+task_dict = todo_rw.create_task_dict()
 if os.environ['BLOCK_BUTTON'] == '1':
     run_gui(task_dict)
 elif os.environ['BLOCK_BUTTON'] == '2':
     open_in_editor(todo_rw.TODO_TXT)
-
-print_blocklet(task_dict)
+else:
+    print_blocklet(task_dict)

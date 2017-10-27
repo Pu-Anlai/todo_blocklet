@@ -1,4 +1,5 @@
 import os
+import re
 import gi
 gi.require_version('Gtk', '3.0')
 from gi.repository import Gtk, Gdk
@@ -11,6 +12,7 @@ class TodoWindow(Gtk.Window):
 
     def __init__(self, task_dict):
         Gtk.Window.__init__(self, title='Todo.txt')
+        self.task_dict = task_dict
 
         self.exit_state = 8
 
@@ -33,69 +35,95 @@ class TodoWindow(Gtk.Window):
         # grid for displaying tasks
         self.grid = Gtk.Grid(column_spacing=5, row_spacing=4)
         self.vbox.pack_start(self.grid, True, True, 0)
-        self.populate_grid(task_dict)
+        self.populate_grid()
+
+        # a box below the grid for entering new tasks
+        self.bottom_box = Gtk.HBox()
+        self.vbox.pack_start(self.bottom_box, True, True, 0)
+
+        # the contents of the bottom box: an entry field and an add button
+        self.bottom_entry = Gtk.Entry()
+        self.bottom_entry.set_placeholder_text('+ Task')
+        self.bottom_entry.connect('key-release-event', self.entry_key_press)
+        self.bottom_add_button = Gtk.Button.new_from_stock(Gtk.STOCK_ADD)
+        self.bottom_box.add(self.bottom_entry)
+        self.bottom_box.add(self.bottom_add_button)
+
+        # function for the click signal of bottom_add_button
+        self.bottom_add_button.connect('clicked', self.clicked_add)
 
         # a separator between the task grid and the buttons
-        separator = Gtk.Separator()
-        self.vbox.pack_start(separator, True, True, 0)
+        self.separator = Gtk.Separator()
+        self.vbox.pack_start(self.separator, True, True, 0)
 
         # a box that holds the ok and cancel buttons
-        button_box = Gtk.ButtonBox(layout_style=Gtk.ButtonBoxStyle.SPREAD,
-                                   spacing=2)
-        self.vbox.pack_start(button_box, True, True, 0)
+        self.button_box = Gtk.ButtonBox(layout_style=Gtk.ButtonBoxStyle.SPREAD,
+                                        spacing=2)
+        self.vbox.pack_start(self.button_box, True, True, 0)
 
         # the buttons
         ok_button = Gtk.Button.new_from_stock(Gtk.STOCK_OK)
         cancel_button = Gtk.Button.new_from_stock(Gtk.STOCK_CANCEL)
-        button_box.add(cancel_button)
-        button_box.add(ok_button)
+        self.button_box.add(cancel_button)
+        self.button_box.add(ok_button)
 
         # and functions for their click signals
         ok_button.connect('clicked', self.clicked_ok)
         cancel_button.connect('clicked', self.clicked_cancel)
 
-    def populate_grid(self, task_dict):
+        # handle key presses (only escape so far)
+        self.connect('key-release-event', self.window_key_press)
+
+        # set focus to entry box
+        self.bottom_entry.grab_focus()
+
+    def populate_grid(self):
         """Populates the grid category by category."""
-        categories = list(task_dict)
+        categories = list(self.task_dict)
         pos = 0
         for cat in categories:
-            self.populate_category(task_dict[cat], cat, pos)
-            pos += len(task_dict[cat])
+            self.populate_category(self.task_dict[cat], cat, pos)
+            pos += len(self.task_dict[cat])
 
     def populate_category(self, task_list, category, pos):
         """Populates the category task by task."""
         for index, task in enumerate(task_list):
             row = index + pos
+            self.create_grid_row(category, task, row)
 
-            # the label that indicates if the task is marked as done or removed
-            state_label = Gtk.Label(label='•', width_chars=2)
-            self.grid.attach(state_label, 0, row, 1, 1)
+    def create_grid_row(self, category, task, row):
+        """Attach a row with appropriate category markup to the grid."""
 
-            # the label that holds the task
-            label = self.create_list_entry(task, category)
-            label.default_category = category
-            label.state = 'default'
-            self.grid.attach_next_to(label, state_label,
-                                     Gtk.PositionType.RIGHT,
-                                     1, 1)
+        # the label that indicates if the task is marked as done or removed
+        state_label = Gtk.Label(label='•', width_chars=2)
+        self.grid.attach_next_to(state_label, None, Gtk.PositionType.BOTTOM,
+                                 1, 1)
 
-            # the done and rm button next to the task
-            done_button = Gtk.Button.new_from_icon_name('emblem-ok-symbolic',
-                                                        Gtk.IconSize.BUTTON)
-            done_button.pressed = False
-            done_button.connect('clicked', self.clicked_done, row)
+        # the label that holds the task
+        label = self.create_list_entry(task, category)
+        label.default_category = category
+        label.state = 'default'
+        self.grid.attach_next_to(label, state_label,
+                                 Gtk.PositionType.RIGHT,
+                                 1, 1)
 
-            rm_button = Gtk.Button.new_from_icon_name('edit-delete-symbolic',
-                                                      Gtk.IconSize.BUTTON)
-            rm_button.pressed = False
-            rm_button.connect('clicked', self.clicked_rm, row)
+        # the done and rm button next to the task
+        done_button = Gtk.Button.new_from_icon_name('emblem-ok-symbolic',
+                                                    Gtk.IconSize.BUTTON)
+        done_button.pressed = False
+        done_button.connect('clicked', self.clicked_done, row)
 
-            self.grid.attach_next_to(done_button, label,
-                                     Gtk.PositionType.RIGHT,
-                                     1, 1)
-            self.grid.attach_next_to(rm_button, done_button,
-                                     Gtk.PositionType.RIGHT,
-                                     1, 1)
+        rm_button = Gtk.Button.new_from_icon_name('edit-delete-symbolic',
+                                                  Gtk.IconSize.BUTTON)
+        rm_button.pressed = False
+        rm_button.connect('clicked', self.clicked_rm, row)
+
+        self.grid.attach_next_to(done_button, label,
+                                 Gtk.PositionType.RIGHT,
+                                 1, 1)
+        self.grid.attach_next_to(rm_button, done_button,
+                                 Gtk.PositionType.RIGHT,
+                                 1, 1)
 
     def create_list_entry(self, task, css_class):
         """Create a label with appropriate CSS markup that holds task."""
@@ -175,7 +203,7 @@ class TodoWindow(Gtk.Window):
         state_label.set_label('✗')
 
     def mark_task_default(self, row):
-        "Return task to it's default markup and clear task state."
+        """Return task to it's default markup and clear task state."""
         label = self.get_label_in_grid(row)
         self.remove_css_classes(label)
         category = label.default_category
@@ -202,6 +230,32 @@ class TodoWindow(Gtk.Window):
         rm_button = self.grid.get_child_at(3, row)
         return rm_button
 
+    def clicked_add(self, button):
+        new_task_str = self.bottom_entry.get_text()
+        cat_match = re.match(r'^\(([A-Z])\)', new_task_str)
+        task_match = re.match(r'^\([A-Z]\)\s+(.+)', new_task_str)
+        if cat_match is not None:
+            cat = cat_match.group(1)
+            task_match = re.match(r'^\([A-Z]\)\s+(.+)', new_task_str)
+            task = task_match.group(1)
+        else:
+            cat = 'none'
+            task = new_task_str
+
+        # if task is an empty string do nothing
+        if task == '':
+            return
+
+        try:
+            self.task_dict[cat].append(task)
+        except KeyError:
+            self.task_dict[cat] = [task]
+
+        self.bottom_entry.set_text('')
+        row = len(self.grid.get_children()) + 1
+        self.create_grid_row(cat, task, row)
+        self.show_all()
+
     def clicked_ok(self, button):
         self.exit_state = 0
         Gtk.main_quit()
@@ -209,6 +263,14 @@ class TodoWindow(Gtk.Window):
     def clicked_cancel(self, button):
         self.exit_state = 1
         Gtk.main_quit()
+
+    def entry_key_press(self, widget, event):
+        if event.keyval == Gdk.KEY_Return:
+            self.clicked_add(None)
+
+    def window_key_press(self, widget, event):
+        if event.keyval == Gdk.KEY_Escape:
+            self.clicked_cancel(None)
 
 
 def gui_from_tasks(task_dict):
