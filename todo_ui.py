@@ -13,9 +13,9 @@ class TodoWindow(Gtk.Window):
     def __init__(self, task_dict):
         Gtk.Window.__init__(self, title='Todo.txt')
         self.task_dict = task_dict
-
+        # count number of rows so new rows can easily be attached
+        self.row_count = 0
         self.exit_state = 8
-
         self.done_tasks = {}
         self.rm_tasks = {}
 
@@ -93,7 +93,8 @@ class TodoWindow(Gtk.Window):
 
     def create_grid_row(self, category, task, row):
         """Attach a row with appropriate category markup to the grid."""
-
+        print(row)
+        self.row_count += 1
         # the label that indicates if the task is marked as done or removed
         state_label = Gtk.Label(label='•', width_chars=2)
         self.grid.attach_next_to(state_label, None, Gtk.PositionType.BOTTOM,
@@ -252,7 +253,7 @@ class TodoWindow(Gtk.Window):
             self.task_dict[cat] = [task]
 
         self.bottom_entry.set_text('')
-        row = len(self.grid.get_children()) + 1
+        row = self.row_count
         self.create_grid_row(cat, task, row)
         self.show_all()
 
