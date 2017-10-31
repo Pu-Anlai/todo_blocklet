@@ -93,7 +93,6 @@ class TodoWindow(Gtk.Window):
 
     def create_grid_row(self, category, task, row):
         """Attach a row with appropriate category markup to the grid."""
-        print(row)
         self.row_count += 1
         # the label that indicates if the task is marked as done or removed
         state_label = Gtk.Label(label='•', width_chars=2)
