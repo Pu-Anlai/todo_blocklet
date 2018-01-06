@@ -1,15 +1,7 @@
-# support global color settings for all blocklets set in a bash script one
-# level up from todo_blocklet
+# get colors from environment variables or use fall-back defaults
 
-import imp
 import os
-WORKING_DIR = os.path.dirname(os.path.realpath(__file__))
-UP_DIR = os.path.abspath(os.path.join(WORKING_DIR, '..'))
-try:
-    imp.load_source('colors', '{}/colors'.format(UP_DIR))
-    from colors import *
-except FileNotFoundError:
-    color01 = "#a3be8c"
-    color02 = "#ebcb8b"
-    color03 = "#d08770"
-    color04 = "#bf616a"
+color01 = "#{}".format(os.getenv("BASE0B") or "a3be8c")
+color02 = "#{}".format(os.getenv("BASE0A") or "ebcb8b")
+color03 = "#{}".format(os.getenv("BASE0F") or "d08770")
+color04 = "#{}".format(os.getenv("BASE08") or "bf616a")
